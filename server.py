@@ -5,43 +5,66 @@ from twisted.protocols.basic import LineOnlyReceiver
 
 class ServerProtocol(LineOnlyReceiver):
     factory: 'Server'
-    login: str = None
+    isLogined: bool = False
+    nickname: str = None
 
     def connectionMade(self):
-        # Потенциальный баг для внимательных =)
-        self.factory.clients.append(self)
+        if self not in self.factory.clients:
+            self.factory.clients.append(self)
 
     def connectionLost(self, reason=connectionDone):
         self.factory.clients.remove(self)
+ 
+    def sendToOthers(self, msg):
+        for user in self.factory.clients:
+            if user is not self and user.isLogined:
+                user.sendLine(msg)
 
     def lineReceived(self, line: bytes):
-        content = line.decode()
+        try:
+            content = line.decode()
+        except:
+            print("Incorrect content")
+            return
 
-        if self.login is not None:
-            content = f"Message from {self.login}: {content}"
 
-            for user in self.factory.clients:
-                if user is not self:
-                    user.sendLine(content.encode())
+        if self.isLogined:
+            content = f"{self.nickname}: {content}"
+            self.sendToOthers(content.encode())
         else:
-            # login:admin -> admin
-            if content.startswith("login:"):
-                self.login = content.replace("login:", "")
-                self.sendLine("Welcome!".encode())
+            if content.startswith("nickname: "):
+                self.registerUser(content.replace("nickname: ", ""))
             else:
-                self.sendLine("Invalid login".encode())
+                self.sendLine("Choose your nickname".encode())
+
+    def registerUser(self, nickname):
+        accepted: bool = True
+
+        for client in self.factory.clients:
+            if client.isLogined and (nickname == client.nickname):
+                accepted = False
+                break
+
+        if accepted:
+            self.isLogined = True
+            self.nickname = nickname
+            self.sendLine(f"Welcome {self.nickname}!".encode())
+        else:
+            self.sendLine(f"User with nickname: {nickname} already in chat!".encode())
 
 
 class Server(ServerFactory):
+    
     protocol = ServerProtocol
     clients: list
+    # messages
 
     def startFactory(self):
         self.clients = []
         print("Server started")
 
     def stopFactory(self):
-        print("Server closed")
+        print("Server stoped")
 
 
 reactor.listenTCP(1234, Server())
