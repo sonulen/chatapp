@@ -1,11 +1,14 @@
 from twisted.internet.protocol import connectionDone
 from twisted.protocols.basic import LineOnlyReceiver
-import * from ServerFactory
+from ServerFactory import Server,Message,User
 
 
 class ServerProtocol(LineOnlyReceiver):
     factory: 'Server'
-    user: User
+    
+    def __init__(self):
+        super().__init__()
+        self.user = User()
 
     def connectionMade(self):
         self.factory.addNewClient(self)
@@ -24,7 +27,7 @@ class ServerProtocol(LineOnlyReceiver):
         # Проверим залогинен ли пользователь
         if self.user.auth:
             # Да, уже залогинен, отправим всем остальным сообщение
-            msg = Message(self.nickname, content)
+            msg = Message(self.user.nickname, content)
             self.factory.sendToOthersUsers(self, msg)
         else:
             # Нет, а строка это логин?

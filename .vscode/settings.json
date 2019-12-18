@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/home/sonulen/work/chatapp/chatenv/bin/python3.7",
+    "python.pythonPath": "/home/sonulen/wrk/chatapp/chatvenv/bin/python3.6",
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
     "python.formatting.provider": "black"

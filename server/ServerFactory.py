@@ -1,5 +1,6 @@
 from twisted.internet.protocol import ServerFactory, connectionDone
 from twisted.protocols.basic import LineOnlyReceiver
+from typing import List
 
 class User:
     def __init__(self, nickname: str = None, auth: bool = False):
@@ -7,40 +8,39 @@ class User:
         self.__auth = auth
 
     @property
-    def nickname(self):
+    def nickname(self) -> str:
         return self.__nickname
 
     @nickname.setter
-    def nickname(self, nickname):
+    def nickname(self, nickname) -> None:
         if not nickname:
             return
         
         self.__nickname = nickname
 
     @property
-    def auth(self):
+    def auth(self) -> bool:
         return self.__auth
 
-    @auth.setter(self, status:bool):
+    @auth.setter
+    def auth(self, status: bool) -> None:
         self.__auth = status
-    
 
+    
 class Message:
-    def __init__(self, nickname, msg):
+    def __init__(self, nickname: str, msg: str):
         self.__nickname = nickname
         self.__msg = msg
 
     @property
-    def content(self):
+    def content(self) -> str:
         return f"{self.__nickname}: {self.__msg}"
-
-
 
 class Server(ServerFactory):
     
-    protocol = ServerProtocol
-    clients: list
-    messages: list[Message]
+    protocol = 'ServerProtocol'
+    clients: List['ServerProtocol']
+    messages: List[Message]
 
     def addNewClient(self, client):
         if client not in self.clients:
@@ -50,20 +50,20 @@ class Server(ServerFactory):
         if client in self.clients:
             self.clients.remove(client)
 
-    def login(self, nickname)
-        for client in clients:
+    def login(self, nickname):
+        for client in self.clients:
             if client.user.nickname == nickname:
                 return False
         
         return True
 
     def sendToOthersUsers(self, clientFrom, msg:Message):
-        if not clienFromt.user.auth:
+        if not clientFrom.user.auth:
             return
         
-        for client in clients:
-            if client != clientFrom && client.auth:
-                client.sendLine(msg.content.encode())
+        # for client in self.clients:
+        #     if client != clientFrom && client.user.auth:
+        #         client.sendLine(msg.content.encode())
 
     def startFactory(self):
         self.clients = []
