@@ -1,7 +1,7 @@
 from twisted.internet.protocol import connectionDone
 from twisted.protocols.basic import LineOnlyReceiver
-from ServerFactory import Server,Message,User
-
+from ServerFactory import *
+from common import User, Message
 
 class ServerProtocol(LineOnlyReceiver):
     factory: 'Server'
